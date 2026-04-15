@@ -28,6 +28,10 @@ extern "C" {
 #  endif
 #else
 #  define GGPO_API
+// __cdecl is a Windows-specific calling convention; define it as empty on non-Windows.
+#  ifndef __cdecl
+#    define __cdecl
+#  endif
 #endif
 
 #define GGPO_MAX_PLAYERS                  4

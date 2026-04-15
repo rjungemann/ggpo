@@ -6,6 +6,9 @@
  */
 
 #include "synctest.h"
+#ifndef _WIN32
+#include <sys/stat.h>
+#endif
 
 SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
                                  char *gamename,
@@ -21,7 +24,8 @@ SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
    _running = false;
    _logfp = NULL;
    _current_input.erase();
-   strcpy_s(_game, gamename);
+   strncpy(_game, gamename, sizeof(_game) - 1);
+   _game[sizeof(_game) - 1] = '\0';
 
    /*
     * Initialize the synchronziation layer
@@ -163,13 +167,19 @@ SyncTestBackend::RaiseSyncError(const char *fmt, ...)
    char buf[1024];
    va_list args;
    va_start(args, fmt);
-   vsprintf_s(buf, ARRAY_SIZE(buf), fmt, args);
+   vsnprintf(buf, ARRAY_SIZE(buf), fmt, args);
    va_end(args);
 
    puts(buf);
+#ifdef _WIN32
    OutputDebugStringA(buf);
+#endif
    EndLog();
+#ifdef _WIN32
    DebugBreak();
+#else
+   abort();
+#endif
 }
 
 GGPOErrorCode
@@ -187,13 +197,18 @@ SyncTestBackend::BeginLog(int saving)
    EndLog();
 
    char filename[MAX_PATH];
+#ifdef _WIN32
    CreateDirectoryA("synclogs", NULL);
-   sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\%s-%04d-%s.log",
+   snprintf(filename, ARRAY_SIZE(filename), "synclogs\\%s-%04d-%s.log",
+#else
+   mkdir("synclogs", 0755);
+   snprintf(filename, ARRAY_SIZE(filename), "synclogs/%s-%04d-%s.log",
+#endif
            saving ? "state" : "log",
            _sync.GetFrameCount(),
            _rollingback ? "replay" : "original");
 
-    fopen_s(&_logfp, filename, "w");
+   _logfp = fopen(filename, "w");
 }
 
 void
@@ -209,9 +224,17 @@ void
 SyncTestBackend::LogSaveStates(SavedInfo &info)
 {
    char filename[MAX_PATH];
-   sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-original.log", _sync.GetFrameCount());
+#ifdef _WIN32
+   snprintf(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-original.log", _sync.GetFrameCount());
+#else
+   snprintf(filename, ARRAY_SIZE(filename), "synclogs/state-%04d-original.log", _sync.GetFrameCount());
+#endif
    _callbacks.log_game_state(filename, (unsigned char *)info.buf, info.cbuf);
 
-   sprintf_s(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-replay.log", _sync.GetFrameCount());
+#ifdef _WIN32
+   snprintf(filename, ARRAY_SIZE(filename), "synclogs\\state-%04d-replay.log", _sync.GetFrameCount());
+#else
+   snprintf(filename, ARRAY_SIZE(filename), "synclogs/state-%04d-replay.log", _sync.GetFrameCount());
+#endif
    _callbacks.log_game_state(filename, _sync.GetLastSavedFrame().buf, _sync.GetLastSavedFrame().cbuf);
 }

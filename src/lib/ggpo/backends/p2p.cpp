@@ -6,6 +6,10 @@
  */
 
 #include "p2p.h"
+#ifndef _WIN32
+#include <climits>
+#include <unistd.h>
+#endif
 
 static const int RECOMMENDATION_INTERVAL           = 240;
 static const int DEFAULT_DISCONNECT_TIMEOUT        = 5000;
@@ -161,7 +165,11 @@ Peer2PeerBackend::DoPoll(int timeout)
          }
          // XXX: this is obviously a farce...
          if (timeout) {
+#ifdef _WIN32
             Sleep(1);
+#else
+            usleep(1000);
+#endif
          }
       }
    }
