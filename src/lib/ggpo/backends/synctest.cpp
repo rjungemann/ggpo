@@ -24,8 +24,7 @@ SyncTestBackend::SyncTestBackend(GGPOSessionCallbacks *cb,
    _running = false;
    _logfp = NULL;
    _current_input.erase();
-   strncpy(_game, gamename, sizeof(_game) - 1);
-   _game[sizeof(_game) - 1] = '\0';
+   snprintf(_game, sizeof(_game), "%s", gamename);
 
    /*
     * Initialize the synchronziation layer

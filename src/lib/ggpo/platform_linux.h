@@ -57,6 +57,7 @@ typedef int SOCKET;
  * Secure string/file function shims for POSIX.
  */
 inline int strcpy_s(char *dest, size_t destsz, const char *src) {
+    if (destsz == 0) return EINVAL;
     strncpy(dest, src, destsz);
     dest[destsz - 1] = '\0';
     return 0;
@@ -69,7 +70,7 @@ inline int strcpy_s(char (&dest)[N], const char *src) {
 
 inline int strncat_s(char *dest, size_t destsz, const char *src, size_t count) {
     size_t dest_len = strlen(dest);
-    if (dest_len >= destsz) return 0;
+    if (dest_len >= destsz) return ERANGE;
     size_t remaining = destsz - dest_len - 1;
     size_t n = (count < remaining) ? count : remaining;
     strncat(dest, src, n);

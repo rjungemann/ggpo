@@ -142,8 +142,7 @@ Udp::Log(const char *fmt, ...)
    size_t offset;
    va_list args;
 
-   strncpy(buf, "udp | ", sizeof(buf));
-   buf[sizeof(buf) - 1] = '\0';
+   snprintf(buf, sizeof(buf), "udp | ");
    offset = strlen(buf);
    va_start(args, fmt);
    vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);
