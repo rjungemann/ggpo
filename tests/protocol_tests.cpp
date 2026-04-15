@@ -120,9 +120,9 @@ bool TestInputAckPrunesPendingFrames() {
    ack.u.input_ack.ack_frame = 3;
    protocol.OnInputAck(&ack, ack.PacketSize());
 
-   if (!Check(protocol.PendingOutputSize() == 1, "Ack should prune frames < ack_frame")) return false;
+   if (!Check(protocol.PendingOutputSize() == 1, "With ack_frame=3, frames 1 and 2 should be pruned")) return false;
    if (!Check(protocol.PendingOutputFrontFrame() == 3, "Newest unacked frame should remain")) return false;
-   if (!Check(protocol.LastAckedFrame() == 2, "Last acked frame should track highest pruned frame")) return false;
+   if (!Check(protocol.LastAckedFrame() == 2, "Last acked frame should equal highest pruned frame (ack_frame - 1 here)")) return false;
    return true;
 }
 
