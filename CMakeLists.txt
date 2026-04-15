@@ -33,3 +33,8 @@ if(GGPO_BUILD_VECTORWAR)
 		message(WARNING "The Vector War app only supports Windows, skipping...")
 	endif()
 endif()
+
+include(CTest)
+if(BUILD_TESTING)
+	add_subdirectory(tests)
+endif()
