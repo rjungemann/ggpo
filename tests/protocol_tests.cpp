@@ -15,7 +15,7 @@ public:
    void SetPeer(const char *ip, uint16 port) {
       _peer_addr.sin_family = AF_INET;
       _peer_addr.sin_port = htons(port);
-      inet_pton(AF_INET, ip, &_peer_addr.sin_addr.s_addr);
+      inet_pton(AF_INET, ip, &_peer_addr.sin_addr);
    }
 
    void SetRemoteMagic(uint16 magic) { _remote_magic_number = magic; }
@@ -67,7 +67,7 @@ bool TestHandlesMsgFiltersByEndpoint() {
    sockaddr_in from = {};
    from.sin_family = AF_INET;
    from.sin_port = htons(7000);
-   inet_pton(AF_INET, "127.0.0.1", &from.sin_addr.s_addr);
+   inet_pton(AF_INET, "127.0.0.1", &from.sin_addr);
 
    UdpMsg msg(UdpMsg::KeepAlive);
    if (!Check(protocol.HandlesMsg(from, &msg), "Expected matching peer endpoint to be handled")) return false;
@@ -122,7 +122,7 @@ bool TestInputAckPrunesPendingFrames() {
 
    if (!Check(protocol.PendingOutputSize() == 1, "With ack_frame=3, frames 1 and 2 should be pruned")) return false;
    if (!Check(protocol.PendingOutputFrontFrame() == 3, "Newest unacked frame should remain")) return false;
-   if (!Check(protocol.LastAckedFrame() == 2, "Last acked frame should equal highest pruned frame (ack_frame - 1 here)")) return false;
+   if (!Check(protocol.LastAckedFrame() == 2, "Last acked frame should equal the highest frame removed from pending output")) return false;
    return true;
 }
 
