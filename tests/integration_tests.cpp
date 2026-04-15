@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <unistd.h>
 
 #include "types.h"
 #include "platform_linux.h"
@@ -225,7 +226,7 @@ static void StepBothClients()
 {
    for (int i = 0; i < 2; i++) {
       if (g_clients[i].running) {
-         uint8 input = (uint8)(i + 1); /* distinct per player */
+         uint8 input = (uint8)(i + 1); /* distinct per client */
          ggpo_add_local_input(g_clients[i].session,
                               g_clients[i].local_handle,
                               &input, (int)sizeof(uint8));
