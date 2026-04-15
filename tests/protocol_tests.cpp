@@ -11,7 +11,7 @@ class TestUdpProtocol : public UdpProtocol {
 public:
    using UdpProtocol::OnInputAck;
 
-   void SetActive() { _udp = reinterpret_cast<Udp *>(0x1); }
+   void SetActive() { _udp = &_fake_udp; }
    void SetPeer(const char *ip, uint16 port) {
       _peer_addr.sin_family = AF_INET;
       _peer_addr.sin_port = htons(port);
@@ -31,8 +31,11 @@ public:
    }
 
    int PendingOutputSize() { return _pending_output.size(); }
-   int PendingOutputFrontFrame() { return _pending_output.front().frame; }
+   int PendingOutputFrontFrame() { return _pending_output.size() ? _pending_output.front().frame : -1; }
    int LastAckedFrame() { return _last_acked_input.frame; }
+
+private:
+   Udp _fake_udp;
 };
 
 bool Check(bool condition, const char *message) {
@@ -116,7 +119,7 @@ bool TestInputAckPrunesPendingFrames() {
    ack.u.input_ack.ack_frame = 3;
    protocol.OnInputAck(&ack, ack.PacketSize());
 
-   if (!Check(protocol.PendingOutputSize() == 1, "Ack should prune frames lower than ack_frame")) return false;
+   if (!Check(protocol.PendingOutputSize() == 1, "Ack should prune frames strictly lower than ack_frame")) return false;
    if (!Check(protocol.PendingOutputFrontFrame() == 3, "Newest unacked frame should remain")) return false;
    if (!Check(protocol.LastAckedFrame() == 2, "Last acked frame should track highest pruned frame")) return false;
    return true;
