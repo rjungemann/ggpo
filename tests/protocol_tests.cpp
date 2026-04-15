@@ -25,8 +25,8 @@ public:
 
    void PushPendingFrame(int frame) {
       GameInput input;
-      char bits = 0;
-      input.init(frame, &bits, 1);
+      char input_bits = 0;
+      input.init(frame, &input_bits, 1);
       _pending_output.push(input);
    }
 
@@ -52,7 +52,8 @@ bool TestUdpMsgSizing() {
 
    UdpMsg input(UdpMsg::Input);
    input.u.input.num_bits = 9;
-   int expected_payload = (int)((char *)&input.u.input.bits - (char *)&input.u.input) + 2;
+   static const int kNineBitsRoundedToBytes = 2;
+   int expected_payload = (int)((char *)&input.u.input.bits - (char *)&input.u.input) + kNineBitsRoundedToBytes;
    if (!Check(input.PayloadSize() == expected_payload, "Input payload should include rounded bit payload")) return false;
    if (!Check(input.PacketSize() == (int)sizeof(input.hdr) + expected_payload, "Packet size should include header + payload")) return false;
    return true;
@@ -119,7 +120,7 @@ bool TestInputAckPrunesPendingFrames() {
    ack.u.input_ack.ack_frame = 3;
    protocol.OnInputAck(&ack, ack.PacketSize());
 
-   if (!Check(protocol.PendingOutputSize() == 1, "Ack should prune frames strictly lower than ack_frame")) return false;
+   if (!Check(protocol.PendingOutputSize() == 1, "Ack should prune frames < ack_frame")) return false;
    if (!Check(protocol.PendingOutputFrontFrame() == 3, "Newest unacked frame should remain")) return false;
    if (!Check(protocol.LastAckedFrame() == 2, "Last acked frame should track highest pruned frame")) return false;
    return true;
