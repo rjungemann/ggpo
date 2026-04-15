@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "types.h"
 #include "network/udp_msg.h"
 #include "network/udp_proto.h"
 #include "game_input.h"
