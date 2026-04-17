@@ -23,10 +23,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <unistd.h>
+#include <chrono>
+#include <thread>
 
 #include "types.h"
+#ifdef _WINDOWS
+#include "platform_windows.h"
+#else
 #include "platform_linux.h"
+#endif
 #include "ggponet.h"
 
 /* -------------------------------------------------------------------------
@@ -378,7 +383,9 @@ int main()
     * returns a positive value, so _last_send_time will be non-zero when the
     * first SyncRequest is sent. */
    (void)Platform::GetCurrentTimeMS();
-   while (Platform::GetCurrentTimeMS() == 0) { usleep(500); }
+   while (Platform::GetCurrentTimeMS() == 0) {
+      std::this_thread::sleep_for(std::chrono::microseconds(500));
+   }
 
    bool ok = true;
    ok = TestTwoClientSynchronize()   && ok;
