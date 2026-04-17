@@ -27,11 +27,11 @@
 #include "types.h"
 #ifdef _WIN32
 #include "platform_windows.h"
-#define SLEEP_500US() Sleep(1)
+#define SLEEP_BRIEFLY() Sleep(0)
 #else
 #include <unistd.h>
 #include "platform_linux.h"
-#define SLEEP_500US() usleep(500)
+#define SLEEP_BRIEFLY() usleep(500)
 #endif
 #include "ggponet.h"
 
@@ -385,7 +385,7 @@ int main()
     * first SyncRequest is sent. */
    (void)Platform::GetCurrentTimeMS();
    while (Platform::GetCurrentTimeMS() == 0) {
-      SLEEP_500US();
+      SLEEP_BRIEFLY();
    }
 
    bool ok = true;
