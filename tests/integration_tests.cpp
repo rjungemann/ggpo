@@ -23,14 +23,15 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <chrono>
-#include <thread>
 
 #include "types.h"
 #ifdef _WINDOWS
 #include "platform_windows.h"
+#define SLEEP_US(us) Sleep((DWORD)(((us) + 999) / 1000))
 #else
+#include <unistd.h>
 #include "platform_linux.h"
+#define SLEEP_US(us) usleep(us)
 #endif
 #include "ggponet.h"
 
@@ -384,7 +385,7 @@ int main()
     * first SyncRequest is sent. */
    (void)Platform::GetCurrentTimeMS();
    while (Platform::GetCurrentTimeMS() == 0) {
-      std::this_thread::sleep_for(std::chrono::microseconds(500));
+      SLEEP_US(500);
    }
 
    bool ok = true;
