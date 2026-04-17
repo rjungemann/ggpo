@@ -33,7 +33,16 @@ void Logv(const char *fmt, va_list args)
    }
    if (!logfile) {
       snprintf(logbuf, ARRAY_SIZE(logbuf), "log-%d.log", Platform::GetProcessID());
+#ifdef _WIN32
+      if (fopen_s(&logfile, logbuf, "w") != 0) {
+         logfile = NULL;
+      }
+#else
       logfile = fopen(logbuf, "w");
+#endif
+      if (!logfile) {
+         return;
+      }
    }
    Logv(logfile, fmt, args);
 }
@@ -56,4 +65,3 @@ void Logv(FILE *fp, const char *fmt, va_list args)
    
    vsnprintf(logbuf, ARRAY_SIZE(logbuf), fmt, args);
 }
-

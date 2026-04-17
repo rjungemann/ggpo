@@ -207,7 +207,13 @@ SyncTestBackend::BeginLog(int saving)
            _sync.GetFrameCount(),
            _rollingback ? "replay" : "original");
 
+#ifdef _WIN32
+   if (fopen_s(&_logfp, filename, "w") != 0) {
+      _logfp = NULL;
+   }
+#else
    _logfp = fopen(filename, "w");
+#endif
 }
 
 void
