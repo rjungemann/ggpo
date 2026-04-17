@@ -208,7 +208,9 @@ SyncTestBackend::BeginLog(int saving)
            _rollingback ? "replay" : "original");
 
 #ifdef _WIN32
-   fopen_s(&_logfp, filename, "w");
+   if (fopen_s(&_logfp, filename, "w") != 0) {
+      return;
+   }
 #else
    _logfp = fopen(filename, "w");
 #endif
