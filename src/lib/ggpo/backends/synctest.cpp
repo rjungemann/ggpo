@@ -213,10 +213,10 @@ SyncTestBackend::BeginLog(int saving)
    }
 #else
    _logfp = fopen(filename, "w");
-#endif
    if (!_logfp) {
       return;
    }
+#endif
 }
 
 void

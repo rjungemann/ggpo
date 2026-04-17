@@ -39,10 +39,10 @@ void Logv(const char *fmt, va_list args)
       }
 #else
       logfile = fopen(logbuf, "w");
-#endif
       if (!logfile) {
          return;
       }
+#endif
    }
    Logv(logfile, fmt, args);
 }
