@@ -27,10 +27,12 @@
 #include "types.h"
 #ifdef _WIN32
 #include "platform_windows.h"
-#define SLEEP_BRIEFLY() Sleep(0)
+/* Windows sleep granularity is milliseconds; use the shortest non-zero delay. */
+#define SLEEP_BRIEFLY() Sleep(1)
 #else
 #include <unistd.h>
 #include "platform_linux.h"
+/* Keep this short; we only need to yield while waiting for timer initialization. */
 #define SLEEP_BRIEFLY() usleep(500)
 #endif
 #include "ggponet.h"
