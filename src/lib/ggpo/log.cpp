@@ -34,9 +34,7 @@ void Logv(const char *fmt, va_list args)
    if (!logfile) {
       snprintf(logbuf, ARRAY_SIZE(logbuf), "log-%d.log", Platform::GetProcessID());
 #ifdef _WIN32
-      if (fopen_s(&logfile, logbuf, "w") != 0) {
-         logfile = NULL;
-      }
+      fopen_s(&logfile, logbuf, "w");
 #else
       logfile = fopen(logbuf, "w");
 #endif
