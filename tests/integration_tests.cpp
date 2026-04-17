@@ -23,10 +23,18 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <unistd.h>
 
 #include "types.h"
+#ifdef _WIN32
+#include "platform_windows.h"
+/* Windows sleep granularity is milliseconds; use the shortest non-zero delay. */
+#define SLEEP_BRIEFLY() Sleep(1)
+#else
+#include <unistd.h>
 #include "platform_linux.h"
+/* Keep this short; we only need to yield while waiting for timer initialization. */
+#define SLEEP_BRIEFLY() usleep(500)
+#endif
 #include "ggponet.h"
 
 /* -------------------------------------------------------------------------
@@ -378,7 +386,9 @@ int main()
     * returns a positive value, so _last_send_time will be non-zero when the
     * first SyncRequest is sent. */
    (void)Platform::GetCurrentTimeMS();
-   while (Platform::GetCurrentTimeMS() == 0) { usleep(500); }
+   while (Platform::GetCurrentTimeMS() == 0) {
+      SLEEP_BRIEFLY();
+   }
 
    bool ok = true;
    ok = TestTwoClientSynchronize()   && ok;
