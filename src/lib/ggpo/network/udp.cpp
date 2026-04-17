@@ -18,11 +18,17 @@ CreateSocket(uint16 bind_port, int retries)
 
    s = socket(AF_INET, SOCK_DGRAM, 0);
    setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)&optval, sizeof optval);
+#ifdef _WIN32
    setsockopt(s, SOL_SOCKET, SO_DONTLINGER, (const char *)&optval, sizeof optval);
+#endif
 
    // non-blocking...
+#ifdef _WIN32
    u_long iMode = 1;
    ioctlsocket(s, FIONBIO, &iMode);
+#else
+   fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+#endif
 
    sin.sin_family = AF_INET;
    sin.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -33,7 +39,11 @@ CreateSocket(uint16 bind_port, int retries)
          return s;
       }
    }
+#ifdef _WIN32
    closesocket(s);
+#else
+   close(s);
+#endif
    return INVALID_SOCKET;
 }
 
@@ -46,7 +56,11 @@ Udp::Udp() :
 Udp::~Udp(void)
 {
    if (_socket != INVALID_SOCKET) {
+#ifdef _WIN32
       closesocket(_socket);
+#else
+      close(_socket);
+#endif
       _socket = INVALID_SOCKET;
    }
 }
@@ -70,9 +84,13 @@ Udp::SendTo(char *buffer, int len, int flags, struct sockaddr *dst, int destlen)
 
    int res = sendto(_socket, buffer, len, flags, dst, destlen);
    if (res == SOCKET_ERROR) {
+#ifdef _WIN32
       DWORD err = WSAGetLastError();
+#else
+      int err = errno;
+#endif
       Log("unknown error in sendto (erro: %d  wsaerr: %d).\n", res, err);
-      ASSERT(FALSE && "Unknown error in sendto");
+      ASSERT(false && "Unknown error in sendto");
    }
    char dst_ip[1024];
    Log("sent packet length %d to %s:%d (ret:%d).\n", len, inet_ntop(AF_INET, (void *)&to->sin_addr, dst_ip, ARRAY_SIZE(dst_ip)), ntohs(to->sin_port), res);
@@ -83,7 +101,11 @@ Udp::OnLoopPoll(void *cookie)
 {
    uint8          recv_buf[MAX_UDP_PACKET_SIZE];
    sockaddr_in    recv_addr;
+#ifdef _WIN32
    int            recv_addr_len;
+#else
+   socklen_t      recv_addr_len;
+#endif
 
    for (;;) {
       recv_addr_len = sizeof(recv_addr);
@@ -92,9 +114,14 @@ Udp::OnLoopPoll(void *cookie)
       // TODO: handle len == 0... indicates a disconnect.
 
       if (len == -1) {
+#ifdef _WIN32
          int error = WSAGetLastError();
          if (error != WSAEWOULDBLOCK) {
-            Log("recvfrom WSAGetLastError returned %d (%x).\n", error, error);
+#else
+         int error = errno;
+         if (error != EWOULDBLOCK) {
+#endif
+            Log("recvfrom error returned %d (%x).\n", error, error);
          }
          break;
       } else if (len > 0) {
@@ -115,7 +142,7 @@ Udp::Log(const char *fmt, ...)
    size_t offset;
    va_list args;
 
-   strcpy_s(buf, "udp | ");
+   snprintf(buf, sizeof(buf), "udp | ");
    offset = strlen(buf);
    va_start(args, fmt);
    vsnprintf(buf + offset, ARRAY_SIZE(buf) - offset - 1, fmt, args);
