@@ -25,13 +25,13 @@
 #include <iostream>
 
 #include "types.h"
-#ifdef _WINDOWS
+#ifdef _WIN32
 #include "platform_windows.h"
-#define SLEEP_US(us) Sleep((DWORD)(((us) + 999) / 1000))
+#define SLEEP_500US() Sleep(1)
 #else
 #include <unistd.h>
 #include "platform_linux.h"
-#define SLEEP_US(us) usleep(us)
+#define SLEEP_500US() usleep(500)
 #endif
 #include "ggponet.h"
 
@@ -385,7 +385,7 @@ int main()
     * first SyncRequest is sent. */
    (void)Platform::GetCurrentTimeMS();
    while (Platform::GetCurrentTimeMS() == 0) {
-      SLEEP_US(500);
+      SLEEP_500US();
    }
 
    bool ok = true;
