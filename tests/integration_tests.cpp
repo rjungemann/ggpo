@@ -207,11 +207,16 @@ static void TeardownClients()
 
 typedef bool (*Predicate)();
 
+static bool ElapsedAtLeast(uint32 start_time, uint32 duration_ms)
+{
+   return (uint32)(Platform::GetCurrentTimeMS() - start_time) >= duration_ms;
+}
+
 /* Pump all live sessions until pred() is true or timeout_ms elapses. */
 static bool PumpUntil(Predicate pred, int timeout_ms)
 {
-   uint32 deadline = Platform::GetCurrentTimeMS() + (uint32)timeout_ms;
-   while (Platform::GetCurrentTimeMS() < deadline) {
+   uint32 start = Platform::GetCurrentTimeMS();
+   while (!ElapsedAtLeast(start, (uint32)timeout_ms)) {
       for (int i = 0; i < 2; i++) {
          if (g_clients[i].session)
             ggpo_idle(g_clients[i].session, 0);
@@ -307,8 +312,8 @@ static bool TestTwoClientInputExchange()
       return Check(false, "Clients did not synchronize within 5 seconds");
    }
 
-   uint32 deadline = Platform::GetCurrentTimeMS() + 5000;
-   while (Platform::GetCurrentTimeMS() < deadline && !BothAdvancedFiveFrames())
+   uint32 start = Platform::GetCurrentTimeMS();
+   while (!ElapsedAtLeast(start, 5000) && !BothAdvancedFiveFrames())
       StepBothClients();
 
    bool result =
@@ -346,8 +351,8 @@ static bool TestDisconnectNotification()
    /* Advance a few frames so _last_recv_time is freshly stamped before the
     * connection is cut, ensuring the timeout starts from a known-recent
     * baseline. */
-   uint32 warmup = Platform::GetCurrentTimeMS() + 1000;
-   while (Platform::GetCurrentTimeMS() < warmup && g_clients[0].game_frame < 3)
+   uint32 warmup_start = Platform::GetCurrentTimeMS();
+   while (!ElapsedAtLeast(warmup_start, 1000) && g_clients[0].game_frame < 3)
       StepBothClients();
 
    /* Close client 0 abruptly -- no goodbye packet is sent.  Client 1 must
@@ -356,8 +361,8 @@ static bool TestDisconnectNotification()
    g_clients[0].session = NULL;
 
    /* Pump client 1 until it raises GGPO_EVENTCODE_DISCONNECTED_FROM_PEER. */
-   uint32 deadline = Platform::GetCurrentTimeMS() + 3000;
-   while (Platform::GetCurrentTimeMS() < deadline) {
+   uint32 disconnect_wait_start = Platform::GetCurrentTimeMS();
+   while (!ElapsedAtLeast(disconnect_wait_start, 3000)) {
       ggpo_idle(g_clients[1].session, 0);
       if (g_clients[1].got_disconnected) break;
    }
