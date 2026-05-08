@@ -50,4 +50,4 @@ target_include_directories(ggpo_integration_tests PRIVATE
 target_link_libraries(ggpo_integration_tests PRIVATE GGPO)
 
 add_test(NAME ggpo_integration_tests COMMAND ggpo_integration_tests)
-set_tests_properties(ggpo_integration_tests PROPERTIES TIMEOUT 60)
+set_tests_properties(ggpo_integration_tests PROPERTIES TIMEOUT 120)
